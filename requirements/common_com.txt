@@ -1,0 +1,23 @@
+# --- 必须锁定的底层依赖 ---
+numpy<2
+pyarrow<14.0.0
+datasets<2.15.0
+
+# --- 核心库 ---
+torch
+transformers
+accelerate
+# 保持 v0.3.0 不变
+git+https://github.com/EleutherAI/lm-evaluation-harness.git@v0.3.0
+
+# --- 其他工具 ---
+jieba
+fuzzywuzzy
+rouge
+pydantic
+hydra-core
+loguru
+python-dotenv
+math_verify
+sympy
+python-Levenshtein
