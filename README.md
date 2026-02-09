@@ -1,6 +1,6 @@
-# 如何在 d2Cache 中添加新模型
+# 如何添加新模型
 
-通过对比 `d2Cache` 和 `d2Cache-origin` 的代码差异，我们总结了在项目中添加新模型（例如 `dparallel_llada`）所需的步骤。主要涉及以下四个方面：
+在项目中添加新模型（例如 `dparallel_llada`）主要涉及以下四个方面：
 
 1.  **模型实现**：在 `src/models/` 下创建新目录并实现模型类。
 2.  **模型导出**：在 `src/models/__init__.py` 中公开新模型类。
