@@ -2,13 +2,14 @@ import transformers
 
 from omegaconf import DictConfig
 from transformers.modeling_utils import PreTrainedModel
+from peft import PeftModel
 
 
 def load_pretrained_model(cfg: DictConfig, **model_kwargs) -> PreTrainedModel:
     """
     Load a pretrained model based on the configuration.
     """
-    from ..models import LLaDAModelLM, DreamModel, DParallelLLaDAModel, DParallelDreamModel
+    from ..models import LLaDAModelLM, DreamModel, DParallelLLaDAModel, DParallelDreamModel, D2FLLaDAModel, D2FDreamModel
 
     model_family = cfg.model.name.split("-")[0]
     if model_family == "llada":
@@ -19,12 +20,32 @@ def load_pretrained_model(cfg: DictConfig, **model_kwargs) -> PreTrainedModel:
         return DParallelLLaDAModel.from_pretrained(cfg.model.path, **model_kwargs)
     elif model_family == "dparallel_dream":
         return DParallelDreamModel.from_pretrained(cfg.model.path, **model_kwargs)
+    elif model_family == "d2f_llada":
+        print(f"Loading Base Model from: {cfg.model.path}")
+        base_model = D2FLLaDAModel.from_pretrained(cfg.model.path, **model_kwargs)
+        if hasattr(cfg.model, "lora_path") and cfg.model.lora_path:
+            print(f"Loading D2F LoRA Adapter from: {cfg.model.lora_path}")
+            model = PeftModel.from_pretrained(base_model, cfg.model.lora_path)
+            model = model.merge_and_unload()
+            return model
+        else:
+            raise ValueError("Config for 'd2f_llada' requires a valid path pointing to the LoRA weights.")
+    elif model_family == "d2f_dream":
+        print(f"Loading Base Model from: {cfg.model.path}")
+        base_model = D2FDreamModel.from_pretrained(cfg.model.path, **model_kwargs)
+        if hasattr(cfg.model, "lora_path") and cfg.model.lora_path:
+            print(f"Loading D2F LoRA Adapter from: {cfg.model.lora_path}")
+            model = PeftModel.from_pretrained(base_model, cfg.model.lora_path)
+            model = model.merge_and_unload()
+            return model
+        else:
+            raise ValueError("Config for 'd2f_dream' requires a valid path pointing to the LoRA weights.")
 
     raise ValueError(f"Unsupported pretrained model: {cfg.model.name}")
 
 
 def load_eval_model(cfg: DictConfig, **model_kwargs):
-    from ..models import LLaDAEval, DreamEval, DParallelLLaDAEval, DParallelDreamEval
+    from ..models import LLaDAEval, DreamEval, DParallelLLaDAEval, DParallelDreamEval, D2FLLaDAEval, D2FDreamEval
 
     model_family = cfg.model.name.split("-")[0]
     if model_family == "llada":
@@ -36,6 +57,10 @@ def load_eval_model(cfg: DictConfig, **model_kwargs):
         print(model_family)
     elif model_family == "dparallel_dream":
         eval_model = DParallelDreamEval(cfg, **model_kwargs)
+    elif model_family == 'd2f_llada':
+        eval_model = D2FLLaDAEval(cfg, **model_kwargs)
+    elif model_family == 'd2f_dream':
+        eval_model = D2FDreamEval(cfg, **model_kwargs)
     else:
         raise NotImplementedError(
             f"Model family {model_family} is not implemented for evaluation."
@@ -58,7 +83,7 @@ def load_tokenizer(cfg: DictConfig, **tokenizer_kwargs):
     # ---------------- Model-specific customization ----------------
     model_family = cfg.model.name.split("-")[0]
     match model_family:
-        case "llada" | "dparallel_llada":
+        case "llada" | "dparallel_llada" | 'd2f_llada':
             tokenizer.add_special_tokens({"mask_token": "<|mdm_mask|>"})
             tokenizer.eot_token = "<|eot_id|>"
 
@@ -76,7 +101,7 @@ def load_tokenizer(cfg: DictConfig, **tokenizer_kwargs):
 
 {% endif %}
 """
-        case "dream" | "dparallel_dream":
+        case "dream" | "dparallel_dream" | 'd2f_dream':
             tokenizer.eot_token = "<|im_end|>"
             tokenizer.eot_token_id = tokenizer.convert_tokens_to_ids(
                 tokenizer.eot_token
