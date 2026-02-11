@@ -1,0 +1,7 @@
+defaults:
+  - fast_dllm_v2-common
+  - _self_
+
+name: fast_dllm_v2_7b-inst
+path: ${oc.env:FAST_DLLM_V2_7_PATH}
+tokenizer_path: ${oc.env:DREAM_BASE_PATH}

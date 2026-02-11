@@ -20,6 +20,9 @@ def load_pretrained_model(cfg: DictConfig, **model_kwargs) -> PreTrainedModel:
         return DParallelLLaDAModel.from_pretrained(cfg.model.path, **model_kwargs)
     elif model_family == "dparallel_dream":
         return DParallelDreamModel.from_pretrained(cfg.model.path, **model_kwargs)
+    elif model_family == "fast_dllm_v2_1.5b" or model_family == "fast_dllm_v2_7b":
+        from ..models import FastdLLMv2Model
+        return FastdLLMv2Model.from_pretrained(cfg.model.path, **model_kwargs)
     elif model_family == "d2f_llada":
         print(f"Loading Base Model from: {cfg.model.path}")
         base_model = D2FLLaDAModel.from_pretrained(cfg.model.path, **model_kwargs)
@@ -45,7 +48,7 @@ def load_pretrained_model(cfg: DictConfig, **model_kwargs) -> PreTrainedModel:
 
 
 def load_eval_model(cfg: DictConfig, **model_kwargs):
-    from ..models import LLaDAEval, DreamEval, DParallelLLaDAEval, DParallelDreamEval, D2FLLaDAEval, D2FDreamEval
+    from ..models import LLaDAEval, DreamEval, DParallelLLaDAEval, DParallelDreamEval, D2FLLaDAEval, D2FDreamEval, FastdLLMv2Eval
 
     model_family = cfg.model.name.split("-")[0]
     if model_family == "llada":
@@ -61,6 +64,8 @@ def load_eval_model(cfg: DictConfig, **model_kwargs):
         eval_model = D2FLLaDAEval(cfg, **model_kwargs)
     elif model_family == 'd2f_dream':
         eval_model = D2FDreamEval(cfg, **model_kwargs)
+    elif model_family == "fast_dllm_v2_1.5b" or model_family == "fast_dllm_v2_7b":
+        eval_model = FastdLLMv2Eval(cfg, **model_kwargs)
     else:
         raise NotImplementedError(
             f"Model family {model_family} is not implemented for evaluation."
@@ -73,15 +78,17 @@ def load_tokenizer(cfg: DictConfig, **tokenizer_kwargs):
 
     # ---------------- Tokenizer loading ----------------
     tokenizer_kwargs["trust_remote_code"] = True
-    tokenizer = transformers.AutoTokenizer.from_pretrained(
-        cfg.model.path, **tokenizer_kwargs
-    )
+    model_family = cfg.model.name.split("-")[0]
+    if model_family == "llada" or model_family == "dream":
+        tokenizer=transformers.AutoTokenizer.from_pretrained(cfg.model.path,**tokenizer_kwargs)
+    elif model_family == "fast_dllm_v2_1.5b" or model_family == "fast_dllm_v2_7b":
+        print("Loading tokenizer from {cfg.model.tokenizer_path}")
+        tokenizer=transformers.AutoTokenizer.from_pretrained(cfg.model.tokenizer_path,**tokenizer_kwargs)
 
     if not tokenizer.pad_token:
         tokenizer.pad_token = tokenizer.eos_token
 
     # ---------------- Model-specific customization ----------------
-    model_family = cfg.model.name.split("-")[0]
     match model_family:
         case "llada" | "dparallel_llada" | 'd2f_llada':
             tokenizer.add_special_tokens({"mask_token": "<|mdm_mask|>"})
@@ -102,6 +109,12 @@ def load_tokenizer(cfg: DictConfig, **tokenizer_kwargs):
 {% endif %}
 """
         case "dream" | "dparallel_dream" | 'd2f_dream':
+            tokenizer.eot_token = "<|im_end|>"
+            tokenizer.eot_token_id = tokenizer.convert_tokens_to_ids(
+                tokenizer.eot_token
+            )
+        case "fast_dllm_v2_1.5b" | "fast_dllm_v2_7b":
+            tokenizer.bos_token = "<|endoftext|>"
             tokenizer.eot_token = "<|im_end|>"
             tokenizer.eot_token_id = tokenizer.convert_tokens_to_ids(
                 tokenizer.eot_token

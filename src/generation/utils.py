@@ -168,7 +168,9 @@ def check_can_generate(
         )
 
     if eligible_mask is None:
-        eligible_mask = torch.ones_like(frame.generated_tokens)
+        eligible_mask = torch.ones_like(frame.generated_tokens, dtype=torch.bool)
+    else:
+        eligible_mask = eligible_mask.clone()
 
     # condition 1
     if stop_until_eot:
