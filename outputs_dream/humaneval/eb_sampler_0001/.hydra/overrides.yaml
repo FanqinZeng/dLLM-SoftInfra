@@ -1,0 +1,8 @@
+- dataset.name=humaneval_instruct
+- batch_size=1
+- seed=1234
+- generation=eb_sampler
+- generation.gen_length=512
+- generation.block_length=32
+- generation.gamma=0.001
+- model=dream-inst

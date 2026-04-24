@@ -7,8 +7,8 @@ from transformers.modeling_utils import PreTrainedModel
 
 
 def get_model_family(model: PreTrainedModel) -> str:
-    from src.llada import LLaDAModelLM
-    from src.dream import DreamModel
+    from src.models.llada import LLaDAModelLM
+    from src.models.dream import DreamModel
 
     if isinstance(model, LLaDAModelLM):
         model_family = "llada"

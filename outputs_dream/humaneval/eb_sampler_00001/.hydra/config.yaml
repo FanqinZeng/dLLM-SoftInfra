@@ -1,0 +1,50 @@
+model:
+  generation:
+    mask_token_id: 151666
+    eot_token_id: 151643
+    pad_token_id: 151643
+    add_bos_token: true
+  name: dream-inst
+  path: ${oc.env:DREAM_INST_PATH}
+generation:
+  strategy: vanilla
+  threshold: null
+  factor: null
+  alg: maskgit_plus
+  gen_length: 512
+  block_length: 32
+  steps: null
+  temperature: 0.0
+  top_p: null
+  top_k: null
+  sigma: null
+  stop_until_eot: false
+  output_probs: false
+  gamma: 0.0001
+seed: 1234
+batch_size: 1
+attn_implementation: sdpa
+dataset:
+  name: humaneval_instruct
+  size: null
+  n_shot: null
+  system_prompt: null
+  batch_size: 1
+mc_num: null
+max_length: 4096
+use_eval_cache: false
+is_check_greedy: true
+add_bos_token: true
+nll_type: mc
+log_type: ftb
+eval_args:
+  log_samples: true
+  tasks: ${..dataset.name}
+  num_fewshot: ${..dataset.n_shot}
+  batch_size: ${..batch_size}
+  limit: ${..dataset.size}
+  confirm_run_unsafe_code: true
+  random_seed: ${..seed}
+  fewshot_random_seed: ${..seed}
+  numpy_random_seed: ${..seed}
+  torch_random_seed: ${..seed}

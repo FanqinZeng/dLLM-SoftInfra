@@ -1,0 +1,9 @@
+- dataset.name=gpqa_main_generative_n_shot
+- batch_size=1
+- seed=1234
+- generation=pc_sampler
+- generation.steps=256
+- generation.gen_length=512
+- generation.block_length=32
+- generation.debias=true
+- model=llada-inst

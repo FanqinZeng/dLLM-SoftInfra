@@ -1,0 +1,8 @@
+- dataset.name=gsm8k
+- batch_size=1
+- seed=1234
+- generation=eb_sampler
+- generation.gen_length=256
+- generation.block_length=32
+- generation.gamma=0.00001
+- model=dream-inst

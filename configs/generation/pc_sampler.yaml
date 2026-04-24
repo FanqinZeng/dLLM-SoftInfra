@@ -6,5 +6,6 @@ defaults:
 # to enable debiasing, {model-family.lower()}_corpus.json should be placed in the src/third_party/ directory
 # e.g., llada_corpus.json for LLaDA
 debias: true
+gamma: null
 
 clip_alpha: 10

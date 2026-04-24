@@ -54,6 +54,16 @@ def generate(
             elif ignore_unknown_args == "forbid":
                 raise ValueError(msg)
         kwargs = {k: v for k, v in kwargs.items() if k not in unknown_args}
+
+        # Initialize token frequency for debiasing if needed
+        if kwargs.get("debias", False):
+            import src.generation.utils as gen_utils
+            if gen_utils._token_freq is None:
+                from src.third_party import get_token_freq
+                gen_utils._token_freq = get_token_freq(
+                    model, device=model.device, dtype=model.dtype
+                )
+
         return gen_fn(model, input_ids, **kwargs)
     else:
         raise NotImplementedError(
